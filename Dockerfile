@@ -1,12 +1,20 @@
-FROM nikolaik/python-nodejs:python3.9-nodejs16
+FROM python:3.10-slim
 
-RUN apt update && apt upgrade -y
-RUN apt install ffmpeg -y
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-COPY requirements.txt /requirements.txt
-RUN cd /
-RUN pip3 install -U pip && pip3 install -U -r requirements.txt
-RUN mkdir /VCPlayerBot
-WORKDIR /VCPlayerBot
-COPY start.sh /start.sh
-CMD ["/bin/bash", "/start.sh"]
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ffmpeg nodejs npm \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+COPY requirements.txt .
+RUN python -m pip install --no-cache-dir --upgrade pip \
+    && python -m pip install --no-cache-dir -r requirements.txt
+
+COPY . .
+
+EXPOSE 8000
+
+CMD ["python", "main.py"]
